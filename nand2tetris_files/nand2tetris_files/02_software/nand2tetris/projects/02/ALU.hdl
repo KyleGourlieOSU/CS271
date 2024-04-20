@@ -59,17 +59,17 @@ CHIP ALU {
    Mux16(a=zerox, b=notzerox, sel=nx, out=notzeroox);
    Mux16(a=zeroy, b=notzeroy, sel=ny, out=notzerooy);
    
-   //adding and anding the two inputs
+   // adding and anding the two inputs
    And16(a=notzeroox, b=notzerooy, out=anded);
    Add16(a=notzeroox, b=notzerooy, out=added);
    
-   //switch for the addition and anding
+   // switch for the addition and anding
    Mux16(a=anded, b=added, sel=f, out=something);
 
-   //taking the negation of the answer
+   // taking the negation of the answer
    Not16(in=something, out=notsomething);
    
-   //switch for choosing the negative or not
+   // switch for choosing the negative or not
    Mux16(a=something, b=notsomething, sel=no, out=outc);
 
    // creates splice for the output
