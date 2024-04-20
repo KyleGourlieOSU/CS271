@@ -13,5 +13,10 @@ CHIP FullAdder {
         carry;   // Left bit of a + b + c
 
     PARTS:
-    // Put you code here:
+    // Use two half adders to add a,b and this sum with c
+    // Use Or to make sure if at leat one carry is ON, it follows through
+    HalfAdder(a=a,b=b,sum=s1, carry=c1);
+    HalfAdder(a=s1, b=c, sum=sum, carry=c2);
+    Or(a=c1, b=c2, out=carry);
+    
 }

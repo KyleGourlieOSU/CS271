@@ -1,0 +1,10 @@
+CHIP Splitter16{
+    IN in[16];
+    OUT a[8], b[8];
+
+PARTS:
+    Not8(in=in[0..7], out=t1);
+    Not8(in=in[8..15], out=t2);
+    Not8(in=t1, out=a);
+    Not8(in=t2, out=b);
+}

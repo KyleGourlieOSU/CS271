@@ -43,4 +43,51 @@ CHIP ALU {
 
     PARTS:
    // Put you code here:
+   // Produces 16-bit false
+   Not16(in=x, out=t);
+   And16(a=x, b=t, out=e);
+
+   // zero for x and y switch
+   Mux16(a=x, b=e, sel=zx, out=zerox);
+   Mux16(a=y, b=e, sel=zy, out=zeroy);
+
+   // negation of x and y
+   Not16(in=zerox, out=notzerox);
+   Not16(in=zeroy, out=notzeroy);
+
+   // gates from zero muxer and negation
+   Mux16(a=zerox, b=notzerox, sel=nx, out=notzeroox);
+   Mux16(a=zeroy, b=notzeroy, sel=ny, out=notzerooy);
+   
+   //adding and anding the two inputs
+   And16(a=notzeroox, b=notzerooy, out=anded);
+   Add16(a=notzeroox, b=notzerooy, out=added);
+   
+   //switch for the addition and anding
+   Mux16(a=anded, b=added, sel=f, out=something);
+
+   //taking the negation of the answer
+   Not16(in=something, out=notsomething);
+   
+   //switch for choosing the negative or not
+   Mux16(a=something, b=notsomething, sel=no, out=outc);
+
+   // creates splice for the output
+   Not16(in=outc, out=b1);
+   Not16(in=b1, out=out2);
+
+   // function that grabs the last bit from a 16 bit
+   Lastgrab16(in=out2, out=ng);
+
+   // places the splice into the output
+   Not16(in=outc, out=notout);
+   Not16(in=notout, out=out);
+   
+   // splits the negation of the output into 2 8-bit chunks
+   Splitter16(in=notout, a=t1, b=t2);
+   
+   // if all 0, then this will return 1
+   And8Way(in=t1, out=s1);
+   And8Way(in=t2, out=s2);
+   And(a=s1, b=s2, out=zr);
 }

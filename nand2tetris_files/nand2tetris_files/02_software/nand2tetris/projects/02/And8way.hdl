@@ -1,0 +1,14 @@
+CHIP And8Way {
+    IN in[8];
+    OUT out;
+
+    PARTS:
+    //
+    And(a=in[0], b=in[1], out=t0);
+    And(a=t0, b=in[2], out=t1);
+    And(a=t1, b=in[3], out=t2);
+    And(a=t2, b=in[4], out=t3);
+    And(a=t3, b=in[5], out=t4);
+    And(a=t4, b=in[6], out=t5);
+    And(a=t5, b=in[7], out=out);
+}
