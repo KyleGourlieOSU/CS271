@@ -16,5 +16,15 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // I had to look up assistance for this chip
+    // computes increment of input
+    Inc16(in=loop, out=incre);
+    // gate for t input with increment
+    Mux16(a=loop, b=incre, sel=inc, out=s1);
+    // gate for recent decision and t-1 input
+    Mux16(a=s1, b=in, sel=load, out=s2);
+    //gate for resetting the clock or not
+    Mux16(a=s2, b[0..15]=false, sel=reset, out=s3);
+    // storing result no matter what, along with assigning a variable for the loop and output
+    Register(in=s3, load=true, out=out, out=loop);
 }

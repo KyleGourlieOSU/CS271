@@ -14,5 +14,7 @@ CHIP Bit {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    // Use the Muxer to repeat values when load in ON and use DFF to relay previous 
+    Mux(a=loop, b=in, sel=load, out=s);
+    DFF(in=s, out=out, out=loop);
 }
