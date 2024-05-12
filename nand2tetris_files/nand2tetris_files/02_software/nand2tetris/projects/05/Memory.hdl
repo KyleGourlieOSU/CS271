@@ -27,5 +27,32 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+
+    //RAM16: 0 - 16383 in decimal
+    //RAM16: 0000000000000000 - 0011111111111111 in 2's complement
+
+    //SCREEN: 16384 - 24575 in decimal
+    //SCREEN: 0100000000000000 - 0101111111111111 in 2's complement
+    
+    //KEYBOARD: 24576 - onwards
+    //KEYBOARD: 0110000000000000 - 0111111111111111 in 2's complement
+
+    //To see if I need to access memory in RAM16, I don't need to look at the last 2 bits in address: address[0..13]
+    //To see if I need to access memory in SCREEN, I don't need to look at the last 3 bits in address: address[0..12]
+    
+    //From this I can use the excluded bits as a way to split up my options and organize the 3 categories of memory:
+    //00-> RAM16K
+    //01-> RAM16K
+    //10-> SCREEN
+    //11-> KEYBOARD 
+    //These values are all from address[13..14]. I don't care about address[15] because this tells me if its negative or not.
+    //To combine my two buses of RAM16K, an OR gate can be used
+
+    DMux4Way(in=load, sel=address[13..14], a=RAMld1, b=RAMld2, c=SCRld, d=KBDld);
+    Or(a=RAMld1, b=RAMld2, out=RAMld);
+    RAM16K(in=in, load=RAMld, address=address[0..13], out=RAMout);
+    Screen(in=in, load=SCRld, address=address[0..12], out=SCRout);
+    Keyboard(out=KBDout);
+    Mux4Way16(a=RAMout, b=RAMout, c=SCRout, d=KBDout, sel=address[13..14], out=out);
+
 }

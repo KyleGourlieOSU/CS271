@@ -40,4 +40,87 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+    Not(in=instruction[15], out=Ainstr);  //want negation because instruction[15] being 0 means loads A so 0 needs to become 1 for Muxer
+    Mux16(a=ALUout, b=instruction, sel=Ainstr, out=Ain);
+
+    Or(a=Ainstr, b=instruction[5], out=Aload); //to write to A, either op-code is 0 (A-instruction), or instruction[5]
+    And(a=instruction[15], b=instruction[4], out=Dload); //to write to D, op-code will be 1, and instruction[4]
+    And(a=instruction[15], b=instruction[3], out=writeM);//to write to M, opt-code will be 1, and instruction[3]
+
+    ARegister(in=Ain, load=Aload, out=Aout, out[0..14]=addressM);
+    Mux16(a=Aout, b=inM, sel=instruction[12], out=ALUin2);
+    DRegister(in=ALUout, load=Dload, out=ALUin1);
+    
+    ALU(x=ALUin1, y=ALUin2, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALUout, zr=outzr, ng=outng);
+    
+    //To use logic for PC counter, I need negations of zr, ng, j1, j2, and j3
+    Not(in=outzr, out=notoutzr);   
+    Not(in=outng, out=notoutng);
+    Not(in=instruction[2], out=notj1);
+    Not(in=instruction[1], out=notj2);
+    Not(in=instruction[0], out=notj3);
+
+    //JGT: Not(j1) And Not(j2) And j3 And Not(zr) and Not(ng)
+    And(a=instruction[15], b=notj1, out=a0);   //First need to check to make sure it is a C-instruction
+    And(a=a0, b=notj2, out=a1);
+    And(a=a1, b=instruction[0], out=a2);
+    And(a=a2, b=notoutzr, out=a3);
+    And(a=a3, b=notoutng, out=jgt);
+
+    //JEQ: Not(j1) And j2 And Not(j3) And zr And Not(ng)
+    And(a=instruction[15], b=notj1, out=b0);   //First need to check to make sure it is a C-instruction
+    And(a=b0, b=instruction[1], out=b1);
+    And(a=b1, b=notj3, out= b2);
+    And(a=b2, b=outzr, out=b3);
+    And(a=b3, b=notoutng, out=jeq);
+
+    //JGE: Not(j1) And j2 And j3 And (zr Or Not(zr)) And Not(ng)
+    And(a=instruction[15], b=notj1, out=c0);   //First need to check to make sure it is a C-instruction
+    And(a=c0, b=instruction[1], out=c1);
+    And(a=c1, b=instruction[0], out=c2);
+    And(a=c2, b=outzr, out=c3);
+    And(a=c2, b=notoutzr, out=c4);
+    Or(a=c3, b=c4, out=c5);     
+    And(a=c5, b=notoutng, out=jge);
+
+    //JLT: j1 And Not(j2) And Not(j3) And Not(zr) And ng
+    And(a=instruction[15], b=instruction[2], out=d0);   //First need to check to make sure it is a C-instruction
+    And(a=d0, b=notj2, out=d1);
+    And(a=d1, b=notj3, out=d2);
+    And(a=d2, b=notoutzr, out=d3);
+    And(a=d3, b=outng, out=jlt);
+
+    //JNE: j1 And Not(j2) and j3 and Not(zr) and (ng Or Not(ng)) 
+    And(a=instruction[15], b=instruction[2], out=e0);   //First need to check to make sure it is a C-instruction
+    And(a=e0, b=notj2, out=e1);
+    And(a=e1, b=instruction[0], out=e2);
+    And(a=e2, b=notoutzr, out=e3);
+    And(a=e3, b=outng, out=e4);
+    And(a=e3, b=notoutng, out=e5);
+    Or(a=e4, b=e5, out=jne);
+
+    //JLE: j1 And j2 And Not(j3) And (((Not(zr) And ng)) Or (zr And Not(ng)))
+    And(a=instruction[15], b=instruction[2], out=f0);   //First need to check to make sure it is a C-instruction
+    And(a=f0, b=instruction[1], out=f1);
+    And(a=f1, b=notj3, out=f2);
+    And(a=f2, b=outzr, out=f3);
+    And(a=f3, b=notoutng, out=f4);
+    And(a=f2, b=notoutzr, out=f5);
+    And(a=f5, b=outng, out=f6);
+    Or(a=f4, b=f6, out=jle);
+
+    //JMP j1 And j2 And j3
+    And(a=instruction[15], b=instruction[2], out=term0);   //First need to check to make sure it is a C-instruction
+    And(a=term0, b=instruction[1], out=term1);
+    And(a=term1, b=instruction[0], out=jmp);
+
+    //if any options are 1, then jump
+    Or(a=jgt, b=jeq, out=term2);
+    Or(a=term2, b=jge, out=term3);
+    Or(a=term3, b=jlt, out=term4);
+    Or(a=term4, b=jne, out=term5);
+    Or(a=term5, b=jle, out=term6);
+    Or(a=term6, b=jmp, out=pcload);
+
+    PC(in=Aout, load=pcload, inc=true, reset=reset, out[0..14]=pc);
 }
